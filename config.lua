@@ -1,6 +1,7 @@
 Config = {}
 Config.Locale = "en"
 Config.IncludeCash = true -- Include cash in inventory?
+Config.UseLimitSystem = true -- If true, default old esx inventory limit system will be used, if set to false, new esx inventory weigh system will be used
 Config.IncludeWeapons = true -- Include weapons in inventory?
 Config.IncludeAccounts = true -- Include accounts (bank, black money, ...)?
 Config.ExcludeAccountsList = {"bank"} -- List of accounts names to exclude from inventory
