@@ -20,25 +20,58 @@ ESX.RegisterServerCallback(
 	end
 )
 
+function canPlayerCarryItem(targetItem, xPlayer, item, count)
+    if Config.UseLimitSystem then
+        if targetItem.limit == -1 or ((targetItem.count + count) <= targetItem.limit) then
+            return(true)
+        end
+    else
+        if xPlayer.canCarryItem(item, count) then
+            return(true)
+        end
+    end
+    return(false)
+end
+
 RegisterServerEvent("esx_inventoryhud:tradePlayerItem")
 AddEventHandler(
 	"esx_inventoryhud:tradePlayerItem",
 	function(from, target, type, itemName, itemCount)
 		local _source = from
+		local targetSource = target
 
 		local sourceXPlayer = ESX.GetPlayerFromId(_source)
-		local targetXPlayer = ESX.GetPlayerFromId(target)
+		local targetXPlayer = ESX.GetPlayerFromId(targetSource)
 
 		if type == "item_standard" then
 			local sourceItem = sourceXPlayer.getInventoryItem(itemName)
 			local targetItem = targetXPlayer.getInventoryItem(itemName)
 
 			if itemCount > 0 and sourceItem.count >= itemCount then
-				if targetItem.limit ~= -1 and (targetItem.count + itemCount) > targetItem.limit then
-				else
+				if canPlayerCarryItem(targetItem, targetXPlayer, itemName, itemCount) then
 					sourceXPlayer.removeInventoryItem(itemName, itemCount)
 					targetXPlayer.addInventoryItem(itemName, itemCount)
+				else
+					TriggerClientEvent(
+						"pNotify:SendNotification",
+						targetSource,
+						{
+							text = _U("not_enough_space"),
+							type = "error",
+							timeout = 3000
+						}
+					)
 				end
+			else
+				TriggerClientEvent(
+					"pNotify:SendNotification",
+					_source,
+					{
+						text = "You dont have enough items!",
+						type = "error",
+						timeout = 3000
+					}
+				)
 			end
 		elseif type == "item_money" then
 			if itemCount > 0 and sourceXPlayer.getMoney() >= itemCount then
@@ -99,7 +132,7 @@ AddEventHandler(
 			local playerItem = xPlayer.getInventoryItem(item.name)
 
 			if amount > 0 then
-				if playerItem.limit ~= -1 and (playerItem.count + amount) > playerItem.limit then
+				if not canPlayerCarryItem(playerItem, xPlayer, item, amount) then
 					TriggerClientEvent(
 						"pNotify:SendNotification",
 						_source,

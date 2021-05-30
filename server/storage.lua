@@ -44,6 +44,19 @@ ESX.RegisterServerCallback(
     end
 )
 
+function canPlayerCarryItem(targetItem, xPlayer, item, count)
+    if Config.UseLimitSystem then
+        if targetItem.limit == -1 or ((targetItem.count + count) <= targetItem.limit) then
+            return(true)
+        end
+    else
+        if xPlayer.canCarryItem(item, count) then
+            return(true)
+        end
+    end
+    return(false)
+end
+
 RegisterServerEvent("esx_inventoryhud:getStorageItem")
 AddEventHandler(
     "esx_inventoryhud:getStorageItem",
@@ -63,7 +76,8 @@ AddEventHandler(
                     -- is there enough in the property?
                     if count > 0 and inventoryItem.count >= count then
                         -- can the player carry the said amount of x item?
-                        if sourceItem.limit ~= -1 and (sourceItem.count + count) > sourceItem.limit then
+                        --if sourceItem.limit ~= -1 and (sourceItem.count + count) > sourceItem.limit then
+                        if not canPlayerCarryItem(sourceItem, xPlayer, item, count) then
                             TriggerClientEvent(
                                 "pNotify:SendNotification",
                                 _source,
